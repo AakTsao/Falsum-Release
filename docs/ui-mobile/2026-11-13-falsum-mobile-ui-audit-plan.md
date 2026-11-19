@@ -1,10 +1,10 @@
-# Mobile UI Audit Implementation Plan
+# 移动端 UI 审计实现计划
 
-1. Preserve current workspace versions and establish a Unity compile baseline.
-2. Fix mobile-shell callback lifetime, inline-style restoration, safe-area hosts, and short-screen rail scrolling.
-3. Implement four independently scrolling menu columns, the events modal, and the connected numeric keypad without changing View-to-Editor contracts.
-4. Add mobile-only compact controls and preference/dialog overrides.
-5. Add focused regression checks and actual UI Toolkit multi-viewport captures.
-6. Synchronize only task-owned changes after comparing current project files with their captured baselines.
-7. Run compile, focused/full self-checks, and localization audit; inspect screenshots and fix regressions.
-8. Report verified results and explicit remaining platform/testing limits.
+1. 保留当前工作区版本并建立 Unity 编译基线。
+2. 修复移动端外壳回调生命周期、内联样式恢复、安全区域宿主以及短屏工具栏滚动。
+3. 在不改变 View 到 Editor 契约的前提下，实现四个独立滚动的菜单列、事件模态窗口与已连接的数字键盘。
+4. 新增仅移动端的紧凑控件以及偏好设置/对话框覆盖。
+5. 新增针对性回归检查与实际 UI Toolkit 多视口截图。
+6. 在将当前项目文件与其捕获的基线对比后，仅同步本任务所拥有的变更。
+7. 运行编译、针对性/完整自检与本地化审计；检查截图并修复回归。
+8. 报告已验证的结果以及明确的剩余平台/测试限制。

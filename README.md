@@ -32,6 +32,7 @@ Android 版应用 id 为 `cn.aaktsao.falsum.pe`，版本号带 `PE-` 前缀。
 | `docs/audio/` | 音频管线与打击音密度 |
 | `docs/verification/` | 验证流水线与性能优化 |
 | `docs/history/` | 历史决策与已知缺口 |
+| `docs/external-tools/` | 外置 JS 工具：设计规则检查、Track 缓动 |
 | `docs/reviews/` | 实测评审结果 |
 
 ### 重点：SKYAREA 天空判定线
@@ -43,6 +44,18 @@ Android 版应用 id 为 `cn.aaktsao.falsum.pe`，版本号带 `PE-` 前缀。
 - [预设库设计](docs/rendering/2026-11-06-falsum-skyarea-bank-design.md)
 - [编辑顺序修正](docs/rendering/2026-11-18-skyarea-editing-order-fix-design.md)
 - [天空判定线参数总表](docs/rendering/天空判定线参数总表.md)
+
+## 外置工具
+
+编辑器支持 JS 插件式工具，随包内置两个：
+
+| 工具 | 作用 |
+|---|---|
+| `com.falsum.tools.design-rule-checker` | 检查 TAP/HOLD 的时间与轨道冲突，报告可定位跳转；只读，不产生撤销记录 |
+| `com.falsum.tools.track-easing` | 按起止速度与缓动类型生成 Track 变速节点，整次生成只占一条撤销记录 |
+
+两者的说明与清单见 `docs/external-tools/`。用户也可在
+`Assets/StreamingAssets/Falsum/UserTools/` 下自行放置工具包。
 
 ## 参考实现包
 

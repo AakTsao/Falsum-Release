@@ -1,61 +1,54 @@
-# FALSUM GRID Ruler Design
+# FALSUM GRID 网格标尺设计
 
-## Scope
+## 范围
 
-Replace the mode plane's full-height grid lines with a horizontal **ruler
-bar** that renders like measure lines, add the left-side info box with
-`GRID` / start-cell / end-cell readouts, and make the grid denominator a
-preference-owned sequence stepped by `-` / `=`.
+把模式平面的全高网格线替换为一条横向的**标尺条**，其渲染方式与小节线一致；新增左侧信息框，
+显示 `GRID` / 起始格 / 终止格读数；并把网格分母改为由偏好设置持有的序列，通过 `-` / `=`
+逐级步进。
 
-In scope: Flick placement, SkyArea placement, middle-edit, and anchor
-lateral drags in the perspective 3D view. Out of scope: the orthographic
-2D view keeps its current plane ticks (user decision), and chart/note
-serialization is unchanged.
+范围内：透视 3D 视图下的 Flick 放置、SkyArea 放置、中键编辑与锚点横向拖拽。范围外：正交
+2D 视图保留其现有的平面刻度（用户决定），谱面/音符序列化不变。
 
-## Current State
+## 现状
 
-| Concern | Today |
+| 关注点 | 当前 |
 |---|---|
-| Mode plane | `FalsumModePlane` world-space uGUI canvas: face, 5 px border, `divisions + 1` full-height vertical `Image` lines, 4 captions |
-| Captions | World `Text` drives layout only; pixels come from `FalsumWorldTextOverlay` (screen space) |
-| Measure lines | `FalsumEditorWorld.BuildGrid` → `AddScreenSpaceLineQuad` + `Falsum/Editor/Grid Line`, pixel width, glow 2.8×, queue 3030 |
-| Flick / SkyArea denominator | `_flickDenominator = 24`, `-`/`=` walk a hardcoded `12 → 24 → 36 → 48` ladder |
-| Middle-edit grid | `_middleEdit.Grid`, `-`/`=` double/halve over `1..192` (a second, unrelated rule) |
-| Persistence | None: neither value is a preference |
-| Anchor lateral drag | Shows **no** mode plane: `TryGetMiddlePlaneState` reads `_middleEdit`, which anchor drags never set |
+| 模式平面 | `FalsumModePlane` 世界空间 uGUI 画布：面板、5 px 边框、`divisions + 1` 条全高纵向 `Image` 线、4 条说明文字 |
+| 说明文字 | 世界空间 `Text` 仅用于驱动布局；像素由 `FalsumWorldTextOverlay`（屏幕空间）绘制 |
+| 小节线 | `FalsumEditorWorld.BuildGrid` → `AddScreenSpaceLineQuad` + `Falsum/Editor/Grid Line`，像素宽度，辉光 2.8×，队列 3030 |
+| Flick / SkyArea 分母 | `_flickDenominator = 24`，`-`/`=` 走硬编码的 `12 → 24 → 36 → 48` 阶梯 |
+| 中键编辑网格 | `_middleEdit.Grid`，`-`/`=` 在 `1..192` 范围内加倍/减半（另一条无关规则） |
+| 持久化 | 无：两个值都不是偏好设置 |
+| 锚点横向拖拽 | **不**显示模式平面：`TryGetMiddlePlaneState` 读取 `_middleEdit`，而锚点拖拽从不设置它 |
 
-Two live defects this design also fixes:
+本设计同时修复两个现存缺陷：
 
-1. `FalsumPreferencesMigration.LegacyPreferencesDto` has no `Grid` member
-   (`:101-113`), so `Build` always replaces the grid group with a fresh
-   default (`:307`). Today `LineColors` / `LineWidthScale` are silently
-   lost on every reload, and any new field in that group would inherit it.
-2. The `-`/`=` keys are not routed through `FalsumInputAction`, and
-   `falsum.modePlane.gridAdjustHint` ("`[-] / [=]`") mislabels them. Keys
-   stay hardcoded (unchanged behaviour); only the label text is corrected.
+1. `FalsumPreferencesMigration.LegacyPreferencesDto` 没有 `Grid` 成员
+   （`:101-113`），因此 `Build` 总是用全新的默认值替换网格分组（`:307`）。目前
+   `LineColors` / `LineWidthScale` 在每次重新加载时都会被静默丢弃，该分组中新增的任何字段
+   都会继承这一问题。
+2. `-`/`=` 键没有经过 `FalsumInputAction` 路由，且
+   `falsum.modePlane.gridAdjustHint`（“`[-] / [=]`”）对其标注有误。按键仍保持硬编码
+   （行为不变）；仅修正标签文本。
 
-## Architecture
+## 架构
 
-The ruler splits along the existing seam: **geometry in the 3D world,
-chrome and text in the mode plane**.
+标尺沿现有的分界拆开：**几何体在 3D 世界空间，外框与文字在模式平面**。
 
-- **Geometry** — `FalsumEditorWorld` owns a new `MeshBuffer _rulerMesh`
-  (queue **3032**, between the grid at 3030 and `LineMaterial` at 3035),
-  created through `CreateMesh(name, queue, useVertexColorLineShader: true)`
-  so it picks up the *same* `FalsumEditorGridLine` material as measure
-  lines. Every stroke is an `AddScreenSpaceLineQuad` call, so width is
-  screen pixels extruded from UV.y exactly like `BuildGrid` (`:4673-4715`).
-- **Chrome** — `FalsumModePlane` keeps its face and 4 border parts, deletes
-  `_gridLines[]` / `SetGridLines` / `MaxGridCells`, and gains one
-  `_infoBox` `Image` plus three caption rows.
-- **Text** — the info box rows are world `Text` instances used only as
-  layout drivers, exactly like the existing captions; pixels are drawn by
-  `FalsumWorldTextOverlay.Place`, which divides pixel sizes by
-  `CanvasScaleFactor`. This is the same path time-plane text already uses,
-  so the readouts stay legible at any depth and `DebugOverlayAlignment`
-  keeps working.
+- **几何体** —— `FalsumEditorWorld` 持有一个新的 `MeshBuffer _rulerMesh`
+  （队列 **3032**，位于 3030 的网格与 3035 的 `LineMaterial` 之间），通过
+  `CreateMesh(name, queue, useVertexColorLineShader: true)` 创建，因而取用与小节线
+  *相同*的 `FalsumEditorGridLine` 材质。每一笔都是一次 `AddScreenSpaceLineQuad`
+  调用，所以宽度是由 UV.y 挤出的屏幕像素，与 `BuildGrid`（`:4673-4715`）完全一致。
+- **外框** —— `FalsumModePlane` 保留其面板与 4 个边框部件，删除
+  `_gridLines[]` / `SetGridLines` / `MaxGridCells`，并新增一个 `_infoBox` `Image`
+  加三行说明文字。
+- **文字** —— 信息框各行是世界空间 `Text` 实例，仅用作布局驱动，与现有说明文字完全一致；
+  像素由 `FalsumWorldTextOverlay.Place` 绘制，该处会把像素尺寸除以
+  `CanvasScaleFactor`。这与时间平面文字已在使用的路径相同，因此读数在任意深度都保持清晰，
+  `DebugOverlayAlignment` 也能继续工作。
 
-Data flow per frame, unchanged in shape:
+每帧数据流，形态不变：
 
 ```
 FalsumChartEditor.UpdateOverlays
@@ -64,13 +57,11 @@ FalsumChartEditor.UpdateOverlays
        → BuildRuler(nowMs, timePlaneMs, ruler)
 ```
 
-`FalsumRulerState` is a small struct that **replaces** the existing
-`snapLine` / `snapDivisions` / `snapColor` arguments of
-`FalsumEditorWorld.Refresh`. The struct is declared in
-`FalsumEditorWorld.cs` (not in Core) because it carries a `UnityEngine.Color`;
-the pure tier/step math it depends on lives in `FalsumBeatGrid` so the
-offline self-check can assert it without a scene. BuildSnapArrow reads the
-same struct, so this is a net parameter reduction:
+`FalsumRulerState` 是一个小结构体，**取代** `FalsumEditorWorld.Refresh` 现有的
+`snapLine` / `snapDivisions` / `snapColor` 参数。该结构体声明在
+`FalsumEditorWorld.cs`（不在 Core）中，因为它携带 `UnityEngine.Color`；
+其依赖的纯层级/步进数学位于 `FalsumBeatGrid`，以便离线自检无需场景即可断言。
+BuildSnapArrow 读取同一结构体，因此这是净参数减少：
 
 ```csharp
 public struct FalsumRulerState
@@ -84,92 +75,84 @@ public struct FalsumRulerState
 }
 ```
 
-The 2D world keeps its own `(flickDivision, snapLine, snapDivisions,
-snapColor)` arguments and is not touched.
+2D 世界保留自己的 `(flickDivision, snapLine, snapDivisions,
+snapColor)` 参数，不受影响。
 
-## Ruler Geometry
+## 标尺几何
 
-Sits in the time plane's slice, `z = _lineLocal.z + NoteZAt(timePlaneMs,
-nowMs)`, spanning `-TrackHalfWidth..+TrackHalfWidth`. Baseline at
-`_floorY + PlaneHeight * 0.34`, ticks rising from it, lengths as fractions
-of `ModePlaneWorldHeight()` so the ruler scales with the plane:
+位于时间平面的切片内，`z = _lineLocal.z + NoteZAt(timePlaneMs,
+nowMs)`，跨度 `-TrackHalfWidth..+TrackHalfWidth`。基线在
+`_floorY + PlaneHeight * 0.34`，刻度从此向上生长，长度取
+`ModePlaneWorldHeight()` 的分数，使标尺随平面缩放：
 
-| Element | Length | Core width | Glow |
+| 元素 | 长度 | 核心宽度 | 辉光 |
 |---|---|---|---|
-| Baseline | full span | 2.2 px | 2.8× |
-| Major tick | 0.12 × height | 2.6 px | 2.8× |
-| Mid tick | 0.085 × height | 2.2 px | 2.8× |
-| Short tick | 0.055 × height | 1.8 px | 2.8× |
-| Start marker | diamond, 0.05 × width | — | — |
-| End marker | square, 0.045 × width | — | — |
-| Selection band | start..end, full height | — | alpha 0.10 |
+| 基线 | 全跨度 | 2.2 px | 2.8× |
+| 主刻度 | 0.12 × 高度 | 2.6 px | 2.8× |
+| 中刻度 | 0.085 × 高度 | 2.2 px | 2.8× |
+| 短刻度 | 0.055 × 高度 | 1.8 px | 2.8× |
+| 起始标记 | 菱形，0.05 × 宽度 | — | — |
+| 终止标记 | 方形，0.045 × 宽度 | — | — |
+| 选择带 | 起始..终止，全高 | — | alpha 0.10 |
 
-Every core width passes through the same
-`_grid.LineWidthScale * max(0.5, Screen.height / 1080)` factor `BuildGrid`
-uses (`:1407-1412`), and each tick emits glow-then-core like measure lines
-(`:1413-1430`).
+每条核心宽度都经过 `BuildGrid` 所用的同一因子
+`_grid.LineWidthScale * max(0.5, Screen.height / 1080)`（`:1407-1412`），
+每个刻度都像小节线一样先辉光后核心（`:1413-1430`）。
 
-### Tick tiers
+### 刻度层级
 
-Integer-exact, no float tolerance — tier is decided by divisibility:
+整数精确，无浮点容差 —— 层级由整除性决定：
 
-- `i * 4 % divisions == 0` → major
-- else `i * 8 % divisions == 0` → mid
-- else → short
+- `i * 4 % divisions == 0` → 主刻度
+- 否则 `i * 8 % divisions == 0` → 中刻度
+- 否则 → 短刻度
 
-Default 24 therefore yields majors at 0/6/12/18/24, mids at 0/3/…/24 and
-shorts at every cell. Tiers degrade gracefully for denominators whose
-eighths are non-integral: 12 and 36 collapse mid into major, 50 and 100
-give majors only at 0/quarter/…, 48 and 72 and 96 keep all three.
+因此默认值 24 在 0/6/12/18/24 处产生主刻度，在 0/3/…/24 处产生中刻度，每个格都有短刻度。
+对于八等分为非整数的分母，层级会平滑退化：12 和 36 把中刻度并入主刻度，50 和 100 只在
+0/四分之一/… 处给出主刻度，48、72 和 96 则保留全部三级。
 
-### Density guard
+### 密度保护
 
-Short ticks are dropped when their screen spacing falls below 4 px.
-Spacing is measured by projecting the baseline endpoints once per frame
-(`Camera.main.WorldToScreenPoint`); `stride = ceil(4.0 / pxPerCell)` and a
-short tick is drawn only when `i % stride == 0`. Major and mid ticks are
-never strided. This mirrors the 2D world's existing `visibleStep` guard
-(`Falsum2DWorld.cs:1362-1372`).
+当短刻度的屏幕间距低于 4 px 时将其丢弃。间距通过每帧投影一次基线端点来测量
+（`Camera.main.WorldToScreenPoint`）；`stride = ceil(4.0 / pxPerCell)`，仅当
+`i % stride == 0` 时才绘制短刻度。主刻度与中刻度从不跳步。这与 2D 世界现有的
+`visibleStep` 保护（`Falsum2DWorld.cs:1362-1372`）一致。
 
-### Markers per mode
+### 各模式标记
 
-| Mode | Start | End | Focus |
+| 模式 | 起始 | 终止 | 焦点 |
 |---|---|---|---|
-| Flick placement | `_flickStart` | `_flickCurrent` | snapped cell |
-| SkyArea placement | `_skyStartAnchor` | `_skyEndAnchor` | snapped cell |
-| Middle edit | focus-side value | none | boundary/position line |
-| Anchor lateral drag | dragged endpoint | none | snapped cell |
+| Flick 放置 | `_flickStart` | `_flickCurrent` | 吸附格 |
+| SkyArea 放置 | `_skyStartAnchor` | `_skyEndAnchor` | 吸附格 |
+| 中键编辑 | 焦点侧值 | 无 | 边界/位置线 |
+| 锚点横向拖拽 | 被拖拽端点 | 无 | 吸附格 |
 
-Anchor drags surface the plane only when the drag's `Shared` state exists
-and describes a plane-facing operation (`Translate`, `GroundBoundary`,
-`SkyBoundary`). `DragEasing`, `EndpointLateral`, and the two group-scale
-operations do not show a ruler. The anchor layer reads
-`shared.Grid` / `shared.ProjectionTimeMs` and performs **no** grid math of
-its own — invariant A-18.
+仅当拖拽的 `Shared` 状态存在且描述的是面向平面的操作（`Translate`、`GroundBoundary`、
+`SkyBoundary`）时，锚点拖拽才显示该平面。`DragEasing`、`EndpointLateral`
+以及两个组缩放操作不显示标尺。锚点层读取 `shared.Grid` / `shared.ProjectionTimeMs`，
+自身**不做**任何网格数学 —— 不变量 A-18。
 
-## Info Box
+## 信息框
 
-One `Image` pinned top-left of the plane (offset `(16, -16)`, size
-`330 × 104` canvas units, fill `(0.16, 0.45, 0.82, 0.96)`, 4 px padding),
-holding three caption rows drawn through the overlay:
+一个 `Image` 固定在平面左上角（偏移 `(16, -16)`，尺寸
+`330 × 104` 画布单位，填充 `(0.16, 0.45, 0.82, 0.96)`，4 px 内边距），
+承载三行通过覆盖层绘制的说明文字：
 
-| Row | Key | Value |
+| 行 | 键 | 值 |
 |---|---|---|
-| 1 | `falsum.modePlane.gridValue` (existing) | `GRID: {grid}` |
-| 2 | `falsum.modePlane.rulerStart` (new) | `起始位置: {cell}` / `Start: {cell}` |
-| 3 | `falsum.modePlane.rulerEnd` (new) | `终止位置: {cell}` / `End: {cell}` |
+| 1 | `falsum.modePlane.gridValue`（现有） | `GRID: {grid}` |
+| 2 | `falsum.modePlane.rulerStart`（新增） | `起始位置: {cell}` / `Start: {cell}` |
+| 3 | `falsum.modePlane.rulerEnd`（新增） | `终止位置: {cell}` / `End: {cell}` |
 
-Cells are integers `round(normalized * divisions)` clamped to
-`0..divisions`, matching the ruler's lattice exactly so the author can
-count ticks. Rows 2 and 3 render only when the corresponding marker
-exists; a mode with no start/end shows `GRID` alone.
+格为整数 `round(normalized * divisions)`，钳制到
+`0..divisions`，与标尺的点阵完全对齐，便于作者数刻度。第 2、3 行仅在对应标记存在时渲染；
+没有起始/终止的模式只显示 `GRID`。
 
-## Preference
+## 偏好设置
 
-`FalsumGridPreferences` gains one field, stored as text for the same
-reason `LineColors` is (a hand-edited file must be able to carry a
-malformed value that `Normalize` repairs, and `Clone()` is a JsonUtility
-round-trip):
+`FalsumGridPreferences` 新增一个字段，以文本形式存储，原因与 `LineColors`
+相同（手工编辑的文件必须能携带一个畸形值并由 `Normalize` 修复，而 `Clone()` 是
+JsonUtility 往返）：
 
 ```csharp
 public const string DefaultDenominatorSequence =
@@ -177,39 +160,33 @@ public const string DefaultDenominatorSequence =
 public string DenominatorSequence = DefaultDenominatorSequence;
 ```
 
-`FalsumBeatGrid` gains the parse/format pair next to the colour helpers:
+`FalsumBeatGrid` 在颜色辅助函数旁新增解析/格式化这一对：
 
-- `MaxGridDenominator = 192` (single source of truth; the editor's
-  `MaxEditableFlickGrid` becomes an alias of it, preserving invariant A-8).
-- `TryParseDenominatorSequence` — comma/semicolon/pipe/whitespace split
-  (same separators as `TryParseColorSequence`), each entry an integer in
-  `1..192`, no duplicates, at most 8 entries, **order preserved** (not
-  sorted), empty input rejected.
-- `FormatDenominatorSequence` — canonical `", "` join; empty list falls
-  back to the default sequence.
-- Errors use new keys `falsum.error.gridSequence.required` / `.tooMany`
-  (`{max}`) / `.range` (`{value}`) / `.duplicate` (`{value}`).
+- `MaxGridDenominator = 192`（单一事实来源；编辑器的
+  `MaxEditableFlickGrid` 成为它的别名，保持不变量 A-8）。
+- `TryParseDenominatorSequence` —— 按逗号/分号/竖线/空白切分
+  （与 `TryParseColorSequence` 相同的分隔符），每项为 `1..192` 的整数，
+  不允许重复，最多 8 项，**保持顺序**（不排序），空输入拒绝。
+- `FormatDenominatorSequence` —— 规范化 `", "` 拼接；空列表回退到默认序列。
+- 错误使用新键 `falsum.error.gridSequence.required` / `.tooMany`
+  （`{max}`）/ `.range`（`{value}`）/ `.duplicate`（`{value}`）。
 
-`Normalize()` extends its grid block (`FalsumPreferences.cs:451-465`) with
-the same parse → substitute-default → re-serialize shape it already
-applies to `LineColors`.
+`Normalize()` 扩展其网格块（`FalsumPreferences.cs:451-465`），采用与
+`LineColors` 相同的解析 → 替换为默认值 → 重新序列化形态。
 
-### Migration fix
+### 迁移修复
 
-`LegacyPreferencesDto` gains `public FalsumGridPreferences Grid;`,
-`JsonPresence` gains a `PresenceGrid` bit probed with `HasTopLevelKey("Grid")`,
-and `Build` calls a new `BuildGrid(dto.Grid, present)` instead of always
-constructing a default. The pre-v6 `Advanced` lift still runs, but only
-when the `Grid` group was absent, so a v6 file is not clobbered by stale
-`Advanced` values. `CurrentVersion` goes 7 → 8 so the store rewrites every
-profile with the new group.
+`LegacyPreferencesDto` 新增 `public FalsumGridPreferences Grid;`，
+`JsonPresence` 新增一个 `PresenceGrid` 位，通过 `HasTopLevelKey("Grid")` 探测，
+`Build` 调用新的 `BuildGrid(dto.Grid, present)` 而不再总是构造默认值。pre-v6 的
+`Advanced` 提升仍会运行，但仅在 `Grid` 分组缺失时执行，因此 v6 文件不会被陈旧的
+`Advanced` 值覆盖。`CurrentVersion` 从 7 → 8，使存储在下次加载时用新分组重写每个配置。
 
-This is what makes `LineColors` / `LineWidthScale` persist for the first
-time; the new field depends on it.
+这正是 `LineColors` / `LineWidthScale` 首次能够持久化的原因；新字段依赖于此。
 
-## Denominator Stepping
+## 分母步进
 
-One sequence, one operator, three consumers:
+一个序列，一个算子，三个消费方：
 
 ```csharp
 // nearest entry strictly below current, clamped to the first entry
@@ -218,81 +195,72 @@ static int StepDown(int current);
 static int StepUp(int current);
 ```
 
-Both live in `FalsumBeatGrid` and are integer-only.
+两者都位于 `FalsumBeatGrid`，且只做整数运算。
 
-| Consumer | Change |
+| 消费方 | 变更 |
 |---|---|
-| `_flickDenominator` | `Decrease/IncreaseFlickDenominator` call `StepDown`/`StepUp`; hint text unchanged (`falsum.hint.flick.denominator` only interpolates the value) |
-| Middle-edit `StepMiddleEditGrid` | replaced by `StepDown`/`StepUp`, keeping the `1..192` clamp; a native grid that is not a sequence member (e.g. 200 from a `1/200` fraction) steps to the nearest member, which is what makes mixed denominators usable |
-| Session reset | `SetMode` / radial placement **no longer** reset to 24; the last chosen value survives for the session (user decision). On preference apply the value is clamped to the sequence |
+| `_flickDenominator` | `Decrease/IncreaseFlickDenominator` 调用 `StepDown`/`StepUp`；提示文本不变（`falsum.hint.flick.denominator` 只插值该值） |
+| 中键编辑 `StepMiddleEditGrid` | 替换为 `StepDown`/`StepUp`，保留 `1..192` 钳制；不是序列成员的原生网格（例如来自 `1/200` 分数的 200）会步进到最近的成员，这正是混合分母可用的原因 |
+| 会话重置 | `SetMode` / 径向放置**不再**重置为 24；最后选择的值在会话内保留（用户决定）。应用偏好设置时将该值钳制到序列范围内 |
 
-The middle-edit self-check assertions (`FalsumChartEditor.MiddleEdit.cs:533-539`)
-change with the new semantics: `(16, -1) == 12`, `(16, +1) == 24`,
-`(192, +1) == 192`, `(1, -1) == 1`.
+中键编辑自检断言（`FalsumChartEditor.MiddleEdit.cs:533-539`）
+随新语义变更：`(16, -1) == 12`、`(16, +1) == 24`、
+`(192, +1) == 192`、`(1, -1) == 1`。
 
-Two magic numbers become derived:
+两个魔法数字变为推导值：
 
-- `CommitFlick`'s `denominator < 48` doubling guard (`:9353`) becomes
-  `denominator * 2 <= MaxGridDenominator`, preserving the intent
-  (represent an odd cell count without exceeding the 192 cap) without a
-  literal.
-- `SnapNormalizedCell`'s `1..48` clamp (`:12605-12609`) widens to
-  `1..MaxGridDenominator` so the sequence's upper entries can be snapped.
+- `CommitFlick` 的 `denominator < 48` 加倍保护（`:9353`）变为
+  `denominator * 2 <= MaxGridDenominator`，在不使用字面量的前提下保留原意
+  （表示奇数格数且不超过 192 上限）。
+- `SnapNormalizedCell` 的 `1..48` 钳制（`:12605-12609`）放宽为
+  `1..MaxGridDenominator`，以便序列中较高的项可以被吸附。
 
-## Preference UI
+## 偏好设置界面
 
-`FalsumEditingPreferencesPage.BuildGrid` appends one row after grid width:
+`FalsumEditingPreferencesPage.BuildGrid` 在网格宽度之后追加一行：
 
-- `TextField` bound to `preferences.Grid.DenominatorSequence`,
-  class `preferences-field preferences-grid-colors` (the 380 px variant
-  that an 8-entry list needs).
-- On change: parse; invalid → `is-invalid` class + `DenominatorSequenceInvalid`
-  page flag, draft untouched; valid → canonical re-serialize + `host.ClearStatus()`.
-- `FalsumPreferencesView.RequestCommit` gains a sibling guard to the
-  existing `GridColorsInvalid` one, using
-  `falsum.error.preferences.fixGridSequence`; the flag is reset on close.
+- `TextField` 绑定到 `preferences.Grid.DenominatorSequence`，
+  类为 `preferences-field preferences-grid-colors`（8 项列表所需的 380 px 变体）。
+- 变更时：解析；无效 → `is-invalid` 类 +
+  `DenominatorSequenceInvalid` 页面标志，草稿不变；有效 → 规范化重新序列化 +
+  `host.ClearStatus()`。
+- `FalsumPreferencesView.RequestCommit` 新增一个与现有
+  `GridColorsInvalid` 并列的保护，使用
+  `falsum.error.preferences.fixGridSequence`；关闭时重置该标志。
 
-New keys, both locales, identical placeholder sets:
-`falsum.preferences.editing.denominatorSequence` (+ `…Description`),
-`falsum.error.preferences.fixGridSequence`, the four
-`falsum.error.gridSequence.*`, and the two `falsum.modePlane.ruler*`.
+新增键，两个语言区域，占位符集合完全一致：
+`falsum.preferences.editing.denominatorSequence`（+ `…Description`）、
+`falsum.error.preferences.fixGridSequence`、四个
+`falsum.error.gridSequence.*`，以及两个 `falsum.modePlane.ruler*`。
 
-## Self-Check
+## 自检
 
-`FalsumSelfCheck` additions:
+`FalsumSelfCheck` 新增内容：
 
-- `CheckBeatGrid`: parse/format round-trip, order preservation,
-  duplicate/range/empty rejection, `StepDown`/`StepUp` first/last clamping,
-  and a non-member native value stepping to the nearest member.
-- `CheckPreferences`: default sequence text, `Normalize` repair of a
-  malformed sequence, and the v7 `Grid` round-trip that the migration fix
-  introduces.
-- `middle_grid_step` updated to the sequence semantics above.
+- `CheckBeatGrid`：解析/格式化往返、顺序保持、重复/范围/空输入拒绝、
+  `StepDown`/`StepUp` 首尾钳制，以及非成员原生值步进到最近成员。
+- `CheckPreferences`：默认序列文本、`Normalize` 对畸形序列的修复，
+  以及迁移修复引入的 v7 `Grid` 往返。
+- `middle_grid_step` 更新为上述序列语义。
 
-## Verification
+## 验证
 
 1. `Unity -batchmode -quit -projectPath <proj> -logFile Diagnostics/UnityCompile.log`
 2. `Unity … -executeMethod InFalsus.EditorTools.FalsumSelfCheck.Run`
-3. `python Tools/falsum_localization_audit.py` (0 issues)
-4. `Capture Editor` screenshot, compared against the reference mockup:
-   ruler tiers, info box text, markers present in all four modes
-5. Manual: enter Flick, press `-`/`=` across the full sequence, confirm the
-   readout, tick tiers, and that leaving and re-entering keeps the value;
-   open Preferences and confirm the row rejects a malformed sequence
+3. `python Tools/falsum_localization_audit.py`（0 问题）
+4. `Capture Editor` 截图，与参考设计稿对比：
+   标尺层级、信息框文字、四个模式下标记均存在
+5. 手动：进入 Flick，在整个序列上按 `-`/`=`，确认读数、刻度层级，
+   以及离开再进入后值保持不变；打开偏好设置，确认该行拒绝畸形序列
 
-## Risks
+## 风险
 
-- The ruler adds one mesh and ~`divisions`+2 quad pairs per frame only
-  while the plane is visible; the existing per-frame rebuild budget is
-  unaffected because nothing is cached.
-- Sequence membership is advisory for middle edit: a note carrying a
-  native grid outside the sequence keeps that value until the user steps
-  it, so charts with `1/200` denominators still open unchanged.
-- Because `-`/`=` now step the middle-edit grid through the sequence, a
-  note whose native grid is `200` can no longer be stepped *up* (200 is
-  past the last entry, 100). This is accepted: `100` is the largest
-  denominator the sequence offers, and `FalsumFraction.MaxDenominator`
-  (200) remains the storage ceiling, not an interactive one.
-- Bumping `CurrentVersion` rewrites every profile on first load; the
-  additive `Grid` group is the only new content, and the migration
-  presence bits keep older files lossless.
+- 标尺仅在平面可见时每帧增加一个 mesh 和约 `divisions`+2 个四边形对；
+  由于没有缓存任何内容，现有的每帧重建预算不受影响。
+- 序列成员资格对中键编辑是建议性的：携带序列之外原生网格的音符会保持该值，直到用户步进它，
+  因此带 `1/200` 分母的谱面仍可原样打开。
+- 由于 `-`/`=` 现在让中键编辑网格沿序列步进，原生网格为 `200` 的音符不再能*向上*步进
+  （200 已超过最后一项 100）。这一点被接受：`100` 是序列提供的最大分母，
+  而 `FalsumFraction.MaxDenominator`（200）仍是存储上限，不是交互上限。
+- 提升 `CurrentVersion` 会在首次加载时重写每个配置；新增的 `Grid` 分组是唯一新内容，
+  迁移存在位保证旧文件无损。

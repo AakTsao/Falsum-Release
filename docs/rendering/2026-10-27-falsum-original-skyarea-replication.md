@@ -1,25 +1,25 @@
-# Falsum Original SkyArea Replication
+# Falsum 原版 SkyArea 复刻
 
-Date: 2026-10-27
+日期：2026-10-27
 
-## Scope
+## 范围
 
-This change replaces the approximate Falsum SkyArea presentation with
-the rendering chain recovered from the shipped In Falsus build.
+本次改动用从已发布 In Falsus 构建中恢复的渲染链路，替换 Falsum 里近似的
+SkyArea 表现。
 
-Source analysis:
+来源分析：
 
 - `D:\AakTsao WorkSpace\In Falsus Demo\analysis\reports\SkyArea_Unity_Full_Replication.md`
 - `D:\AakTsao WorkSpace\In Falsus Demo\analysis\reconstructed`
 
-Development copy:
+开发副本：
 
 - `D:\AakTsao WorkSpace\In Falsus Demo\backups\InFalsus-Gameplay-SkyArea-20261027`
-- Git branch: `feature/original-skyarea`
+- Git 分支：`feature/original-skyarea`
 
-The original game project directory was not modified.
+原版游戏工程目录未被修改。
 
-## Runtime Structure
+## 运行时结构
 
 ```text
 JUDGE_SKY
@@ -33,158 +33,139 @@ JUDGE_SKY
 └─ SkyJudgementLineMaskResources    hidden 8 x 90 triangle mesh
 ```
 
-## Group And Geometry Reconstruction
+## 分组与几何重建
 
-- SkyAreas are processed in source-file order. Each segment is compared
-  only with the immediately preceding SkyArea segment.
-- A segment joins the preceding group when the preceding end and current
-  start differ by at most 2 ms. Horizontal overlap is not required.
-- A disconnected SkyArea consumes one shared chart-object ordinal.
-  Ground objects also consume ordinals, matching the shipped parser.
-- First/last group rendering is derived from the resulting GroupId,
-  rather than re-running an independent overlap heuristic.
-- Each body segment is sampled every 5 ms:
-  `rowCount = floor(durationMs / 5) + 1`.
-- Each row emits one quad with four vertices:
-  `left(t0), left(t1), right(t1), right(t0)`.
-- Indices are `0,1,3, 3,1,2`.
-- UV0 stores normalized track X and `t`.
-- UV1 stores side and visual distance along the track.
-- UV2 stores current width and segment visual length.
-- UV3 stores start/end overlap ranges for seam removal.
-- UV4 stores first/last segment flags and the segment visual start.
-- Left and right boundaries independently use linear, sine-out, or
-  sine-in easing.
-- Seam suppression requires the preceding end and current start to be
-  equal within `0.0001 ms`. The 2 ms grouping tolerance does not make a
-  1-2 ms gap seam-connected.
+- SkyArea 按源文件顺序处理。每段只与紧邻的前一个 SkyArea 段比较。
+- 前一段的终点与当前段的起点相差不超过 2 ms 时，当前段并入前一组。不要求
+  水平方向重叠。
+- 一个不相连的 SkyArea 消耗一个共享的谱面对象序号。地面对象同样消耗序号，
+  与已发布解析器的行为一致。
+- 首/末组的渲染由最终得到的 GroupId 推导，而不是再跑一次独立的水平重叠启发式。
+- 每个主体段每 5 ms 采样一次：`rowCount = floor(durationMs / 5) + 1`。
+- 每一行输出一个含四个顶点的四边形：
+  `left(t0), left(t1), right(t1), right(t0)`。
+- 索引为 `0,1,3, 3,1,2`。
+- UV0 存归一化的 track X 与 `t`。
+- UV1 存侧向与沿 track 的视觉距离。
+- UV2 存当前宽度与段视觉长度。
+- UV3 存用于接缝消除的起点/终点重叠范围。
+- UV4 存首段/末段标志与段视觉起点。
+- 左、右边界分别独立使用线性、sine-out 或 sine-in 缓动。
+- 接缝抑制要求前一段终点与当前段起点在 `0.0001 ms` 内相等。2 ms 的分组容差
+  不会让 1-2 ms 的间隙成为接缝相连。
 
-The single-mesh group representation is a Falsum integration choice.
-The per-segment inputs and fragment math match the shipped multi-mesh
-SkyArea implementation.
+单网格的组表示是 Falsum 的一种集成选择。逐段的输入与片元数学与已发布的
+多网格 SkyArea 实现一致。
 
-## Body Shader
+## 主体着色器
 
 `Assets/InFalsus/Recovered/b3.shader`
 
-- Recovers the 24-bit integer hash gradient noise.
-- Samples `ARCHITECT-LINES` and `DOT-GRID` alpha channels.
-- Reconstructs the original texture-space travel and slow phase drift.
-- Reconstructs `_MissingRange` group seam suppression.
-- Reconstructs the internal procedural outline, depth boost, HDR edge
-  colors, linear-to-sRGB conversion, and 2x saturation around luma.
-- Uses original default colors and queue 3010.
-- `_VisualStart` is the segment's source-time travel distance and
-  `_VisualChartProgress` is the current chart travel distance, so the V
-  phase advances over time.
-- `ARCHITECT-LINES` and `DOT-GRID` use Repeat wrapping. Clamp wrapping
-  pins the accumulated V phase to the texture edge and creates the
-  incorrect long vertical-stripe appearance.
-- Falsum uses `_Color.a = 0.5` for the center body fill, halving its
-  opacity relative to the original alpha of 1.0. The independently
-  rendered edge center and edge glow colors are unchanged.
+- 复原 24 位整数哈希梯度噪声。
+- 采样 `ARCHITECT-LINES` 与 `DOT-GRID` 的 alpha 通道。
+- 重建原始的纹理空间行进与慢速相位漂移。
+- 重建 `_MissingRange` 的组接缝抑制。
+- 重建内部的程序化描边、深度增强、HDR 边缘色、linear-to-sRGB 转换，以及
+  围绕亮度的 2 倍饱和度。
+- 使用原始默认颜色与队列 3010。
+- `_VisualStart` 是该段的源时间行进距离，`_VisualChartProgress` 是当前谱面
+  行进距离，因此 V 相位随时间推进。
+- `ARCHITECT-LINES` 与 `DOT-GRID` 使用 Repeat 包裹模式。Clamp 包裹会把累积的
+  V 相位钉在纹理边缘，产生错误的长竖条外观。
+- Falsum 对中心主体填充使用 `_Color.a = 0.5`，相对原始 alpha 值 1.0 把不透明度
+  减半。独立渲染的边缘中心色与边缘辉光色保持不变。
 
-## Entry Brackets
+## 入口括号
 
-- Mesh: original `BRACKET.obj`, loaded through its imported
-  `MeshFilter`.
-- Texture: original `SquareBracket-Diffuse.png`.
-- Two instances are placed at the first segment's start boundaries.
-- The right marker is rotated 180 degrees around Y.
-- Brackets appear only while the group start is more than 5 ms away.
-- Render queue is 3012.
+- 网格：原始 `BRACKET.obj`，通过其导入的 `MeshFilter` 加载。
+- 纹理：原始 `SquareBracket-Diffuse.png`。
+- 两个实例放置在第一段起点的边界处。
+- 右侧标记绕 Y 轴旋转 180 度。
+- 仅当组起点距离大于 5 ms 时才显示括号。
+- 渲染队列为 3012。
 
-## Ground Shadow
+## 地面阴影
 
-- The shadow renderer shares the exact body Mesh.
-- Local offset is `+0.005` on Y.
-- Shader returns only the material color.
-- Color is `(0.1415094, 0.1415094, 0.1415094, 0.2941177)`.
-- Queue is 3006, ZTest is Always, ZWrite is Off.
-- No shadow map, projector, or depth sampling is used.
+- 阴影渲染器共享完全相同的 body Mesh。
+- Y 轴本地偏移为 `+0.005`。
+- 着色器只返回材质颜色。
+- 颜色为 `(0.1415094, 0.1415094, 0.1415094, 0.2941177)`。
+- 队列为 3006，ZTest 为 Always，ZWrite 为 Off。
+- 不使用阴影贴图、投影器或深度采样。
 
-## Judgement Line Triangles
+## 判定线三角形
 
-`SkyJudgementLineEffect` recreates the shipped CPU and GPU data flow:
+`SkyJudgementLineEffect` 重建已发布的 CPU 与 GPU 数据流：
 
-- Mesh: 8 rows x 90 columns, 181 triangles per row, 1448 triangles.
-- Every triangle owns three unique vertices, so `SV_VertexID / 3`
-  equals the original triangle id.
-- Four cycled structured buffers prevent CPU writes from overwriting
-  the buffer currently consumed by the GPU.
-- The absolute monotonic Stopwatch clock drives Perlin flashes.
-- Row distance weakens outer rows.
-- Active range triangles decay at 2.5x; out-of-range triangles decay at
-  5x.
-- A narrow range enters the all-triangles fast-decay branch.
+- 网格：8 行 x 90 列，每行 181 个三角形，共 1448 个三角形。
+- 每个三角形拥有三个独立顶点，因此 `SV_VertexID / 3` 等于原始三角形 id。
+- 四个循环使用的结构化缓冲区，防止 CPU 写入覆盖 GPU 当前正在消费的缓冲区。
+- 绝对单调的 Stopwatch 时钟驱动 Perlin 闪烁。
+- 行距离削弱外侧行。
+- 有效范围内的三角形以 2.5x 衰减；范围外的三角形以 5x 衰减。
+- 范围很窄时进入全三角形快速衰减分支。
 
-The RenderGraph pass executes after opaques:
+RenderGraph pass 在不透明物体之后执行：
 
-1. Draw the triangle mesh to the full mask.
-2. Horizontal and vertical five-tap blur into `W x H/4`.
-3. Two downsample and two upsample stages.
-4. Final vertical blur into the second `W x H/4` texture.
+1. 把三角形网格绘制到完整遮罩。
+2. 水平与垂直五点模糊，写入 `W x H/4`。
+3. 两个降采样阶段与两个升采样阶段。
+4. 最终垂直模糊写入第二张 `W x H/4` 纹理。
 
-The blur radius is `0.0001`, and the weights are:
+模糊半径为 `0.0001`，权重为：
 
 ```text
 0.227027, 0.316216, 0.316216, 0.070270, 0.070270
 ```
 
-## Judgement Line Composition
+## 判定线合成
 
 `Assets/InFalsus/Recovered/a7.shader`
 
-- Samples the filtered and blurred triangle masks.
-- Uses `pow(max(grid, blurred), 0.3)` and smoothstep.
-- Uses the original analytic line SDF with constants 40, 2, 16.8, and
-  0.1.
-- Uses `_TriangleBoundary = 0.95` for the white fringe.
-- Uses original intensity thresholds 0.450004, 0.638239, color ramp, and
-  linear-to-sRGB conversion.
-- Uses the 109 rad/s and 34 rad/s dual-sine pulse.
-- Fades linearly over 0.3 seconds after the active SkyArea ends.
+- 采样经过滤波与模糊的三角形遮罩。
+- 使用 `pow(max(grid, blurred), 0.3)` 与 smoothstep。
+- 使用原始解析线 SDF，常数为 40、2、16.8 与 0.1。
+- 白色边缘使用 `_TriangleBoundary = 0.95`。
+- 使用原始强度阈值 0.450004、0.638239、颜色渐变，以及 linear-to-sRGB 转换。
+- 使用 109 rad/s 与 34 rad/s 的双正弦脉冲。
+- 有效 SkyArea 结束后 0.3 秒内线性淡出。
 
-## Resolution Policy
+## 分辨率策略
 
-The shipped full mask uses the camera width divided by 3840 and a
-2048 reference size. That formula is preserved above 1080p.
+已发布的完整遮罩使用相机宽度除以 3840 与 2048 的参考尺寸。该公式在 1080p
+以上保持不变。
 
-At 1152 x 720, the exact formula created a 341 x 341 mask in the
-batch capture path and made the triangles visibly blocky. The runtime
-now clamps the mask scale to 0.75, producing 1536 x 1536 at low
-resolutions while still producing 2048 at 4K. Geometry, triangle count,
-opacity timing, blur kernel, colors, and composition math are unchanged.
+在 1152 x 720 下，该精确公式在批处理捕获路径中产生了 341 x 341 的遮罩，
+使三角形出现可见的块状。运行时现在把遮罩缩放钳制到 0.75，在低分辨率下产生
+1536 x 1536，同时在 4K 下仍产生 2048。几何、三角形数量、不透明度时序、模糊核、
+颜色与合成数学均未改变。
 
-## Diagnostic Capture
+## 诊断捕获
 
-`GameplayPlayCapture` now:
+`GameplayPlayCapture` 现在：
 
-- Preserves the parsed source chart in play-mode capture.
-- Starts the diagnostic gameplay clock.
-- Resizes the triangle mask to the requested capture width before
-  rendering.
-- Supports `INFALSUS_CAPTURE_WIDTH` and
-  `INFALSUS_CAPTURE_HEIGHT`.
-- Optionally writes the filtered triangle mask.
+- 在播放模式捕获中保留解析后的源谱面。
+- 启动诊断用玩法时钟。
+- 在渲染前把三角形遮罩调整到请求的捕获宽度。
+- 支持 `INFALSUS_CAPTURE_WIDTH` 与 `INFALSUS_CAPTURE_HEIGHT`。
+- 可选写入滤波后的三角形遮罩。
 
-## Verification
+## 验证
 
-Unity batch self-check:
+Unity 批处理自检：
 
 ```text
 [Falsum] Self check passed: 25 checks.
 ```
 
-Runtime capture:
+运行时捕获：
 
-- 1152 x 720, active SkyArea at 0.9 s and 6.2 s.
-- 1920 x 1080, active SkyArea at 0.9 s and 6.2 s.
-- Triangle mask is 1536 x 1536 in both verification resolutions.
-- Body texture, group entry brackets, group seams, ground shadow,
-  judgement glow, and randomized triangles are visible.
+- 1152 x 720，活动 SkyArea 位于 0.9 秒与 6.2 秒。
+- 1920 x 1080，活动 SkyArea 位于 0.9 秒与 6.2 秒。
+- 两个验证分辨率下三角形遮罩均为 1536 x 1536。
+- 主体纹理、组入口括号、组接缝、地面阴影、判定线辉光与随机化三角形均可见。
 
-Screenshots:
+截图：
 
 - `Diagnostics/Screenshots/skyarea_final_1152_0.900.png`
 - `Diagnostics/Screenshots/skyarea_final_1152_6.200.png`
@@ -192,4 +173,3 @@ Screenshots:
 - `Diagnostics/Screenshots/skyarea_crisp1536_0.900.png`
 - `Diagnostics/Screenshots/skyarea_crisp1536_6.200.png`
 - `Diagnostics/Screenshots/skyarea_crisp1536_sky_mask.png`
-

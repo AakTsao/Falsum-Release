@@ -1,0 +1,11 @@
+{
+  "apiVersion": 1,
+  "engine": "javascript",
+  "id": "com.falsum.tools.design-rule-checker",
+  "name": "design-rule-checker",
+  "version": "1.0.2",
+  "author": "FALSUM",
+  "description": "",
+  "entry": "tool.js",
+  "permissions": []
+}

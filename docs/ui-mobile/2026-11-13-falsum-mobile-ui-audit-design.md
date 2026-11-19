@@ -1,29 +1,29 @@
-# FALSUM Mobile UI Audit
+# FALSUM 移动端 UI 审计
 
-Date: 2026-11-13. Approved in chat, including the request to use multiple vertical menu columns and begin implementation. Revised after the user requested substantially denser non-rail UI and a bottom-right keypad.
+日期：2026-11-13。已在聊天中获批，包括使用多个纵向菜单列并开始实现的请求。在用户要求显著更紧凑的非侧栏 UI 与右下角数字键盘后修订。
 
-## Scope
+## 范围
 
-Landscape phones only. Preserve the existing left/right tool rails, their control-scale preference, chart data, editing gestures, and desktop layout.
+仅限横屏手机。保留现有的左/右工具栏、其控件缩放偏好设置、谱面数据、编辑手势与桌面布局。
 
-Keep the existing UXML, View events, localization, and mobile stylesheet. Do not create a parallel editor.
+保留现有的 UXML、View 事件、本地化与移动端样式表。不要创建平行的编辑器。
 
-## Design
+## 设计
 
-- Reduce floating columns from 200/254 to maximum widths of 144/176 panel units. Use compact type and real layout dimensions rather than transforms; rail sizes and their scale preference remain unchanged.
-- Arrange File, Edit, View, and Tools in four vertical menu columns with fixed headings and independently scrolling actions. Use two columns only below 540 safe panel units. Use flat 28-unit action rows and smaller window chrome.
-- Replace the mobile events drawer with a centered modal window. Preserve filtering, inline editing, locate/copy/delete/apply actions, and adding events. Keep header and footer outside the scrolling list.
-- Keep preferences navigation as a compact vertical list on landscape phones. Reduce headings, fields, buttons and padding together. Stack long setting rows on narrow phones and keep footer actions visible.
-- Apply safe-area insets to the actual absolutely positioned rail/overlay hosts. Recalculate on viewport or safe-area changes.
-- Let short-screen rails scroll without changing their button size.
-- Open the menu on the first tap. Unregister shell callbacks on detach and restore inline styles, reparented elements, and transient windows.
-- Connect the numeric keypad to mobile and property/event numeric inputs. Dock its approximately 196-by-184-unit window at the bottom-right, inside the safe area and clear of the rails/progress strip. Use no fullscreen scrim and leave the chart interactive. Support decimals, minus signs, and fractions through the existing sanitizer; cancel leaves values unchanged and confirm submits once.
-- Escape/system-back closes one topmost mobile surface per frame. Do not close underlying mobile windows when another application dialog owns focus.
+- 将浮动列从 200/254 缩减到最大宽度 144/176 面板单位。使用紧凑字体与真实布局尺寸而非变换；工具栏尺寸及其缩放偏好保持不变。
+- 将 File、Edit、View 与 Tools 排成四个纵向菜单列，标题固定、操作区各自独立滚动。仅在低于 540 安全面板单位时使用两列。使用扁平的 28 单位操作行与更小的窗口外框。
+- 用居中模态窗口替换移动端事件抽屉。保留筛选、内联编辑、定位/复制/删除/应用操作以及添加事件。保持表头与表尾在滚动列表之外。
+- 在横屏手机上保持偏好设置导航为紧凑的纵向列表。同时缩小标题、字段、按钮与内边距。在窄屏手机上堆叠长设置行，并保持底部操作可见。
+- 将安全区域内边距应用到实际的绝对定位工具栏/覆盖层宿主上。在视口或安全区域变化时重新计算。
+- 让短屏下的工具栏可滚动，而不改变其按钮尺寸。
+- 首次点击即打开菜单。在销毁时注销外壳回调，并恢复内联样式、被重新挂载的元素与临时窗口。
+- 将数字键盘连接到移动端与属性/事件数值输入框。将其约 196×184 单位的窗口停靠在右下角，位于安全区域内并避开工具栏/进度条。不使用全屏遮罩，保持谱面可交互。通过现有 sanitizer 支持小数、负号与分数；取消时值不变，确认时提交一次。
+- Escape/系统返回每帧关闭一个最顶层移动端界面。当另一个应用对话框占有焦点时，不要关闭其下方的移动端窗口。
 
-## Verification
+## 验证
 
-The baseline Unity batch compile passed before editing.
+编辑前基线 Unity 批处理编译已通过。
 
-Run Unity compilation, the existing editor/mobile self-checks, focused mobile UI regression tests, and the localization audit. Capture actual UI Toolkit layouts at 19:9, 16:9, and short landscape viewports, including the menu, preferences, events, and keypad. Verify changed dimensions, scrolling, safe boundaries, and mobile-to-desktop round trips.
+运行 Unity 编译、现有编辑器/移动端自检、针对性的移动端 UI 回归测试与本地化审计。在 19:9、16:9 与短横屏视口下捕获实际 UI Toolkit 布局，包括菜单、偏好设置、事件与数字键盘。验证变更后的尺寸、滚动、安全边界以及移动端到桌面端的往返。
 
-Browser drawings are design previews only. They are not Unity screenshots or proof of mobile-device behavior. No Android device or release build is promised by this audit.
+浏览器绘制图仅为设计预览。它们不是 Unity 截图，也不能证明移动设备上的行为。本审计不承诺任何 Android 设备或发布构建。

@@ -1,60 +1,53 @@
-# FALSUM Editor Preferences And Middle-Edit Status Design
+# FALSUM 编辑器偏好设置与中键编辑状态设计
 
-## Scope
+## 范围
 
-Update the in-project FALSUM editor shell in `InFalsus-Gameplay` only.
+仅更新 `InFalsus-Gameplay` 中项目内的 FALSUM 编辑器外壳。
 
-## Background Header
+## 背景标题栏
 
-The gameplay-background preview header keeps only the `背景设置` title on the
-left and the close button on the right. The title owns the remaining width so
-the close button stays aligned to the panel edge.
+玩法背景预览的标题栏左侧仅保留 `背景设置` 标题，右侧为关闭按钮。标题占据剩余宽度，
+使关闭按钮始终对齐到面板边缘。
 
-## Difficulty Cards
+## 难度卡片
 
-The current-chart preferences page presents four difficulty cards.
+当前谱面偏好设置页展示四张难度卡片。
 
-- Enabled difficulties expose a level field and a chart-designer field.
-- Disabled difficulties show `--` and `谱面未启用`.
-- Clicking a disabled card selects that difficulty through the same chart
-  switching path used by the song-info difficulty menu.
-- Preferences remain open after switching and rebuild the current-chart page
-  from the newly selected difficulty.
+- 已启用的难度暴露一个等级字段和一个谱面设计者字段。
+- 已禁用的难度显示 `--` 与 `谱面未启用`。
+- 点击已禁用的卡片会通过与歌曲信息难度菜单相同的谱面切换路径选择该难度。
+- 切换后偏好设置保持打开，并根据新选中的难度重建当前谱面页面。
 
-Difficulty edits live in `FalsumChartMetadataDraft`, so completion applies them
-through the existing metadata commit path and cancellation discards them.
+难度编辑存放在 `FalsumChartMetadataDraft` 中，因此完成时通过现有的元数据提交路径应用，
+取消时则丢弃。
 
-The preferences footer actions are explicitly right aligned.
+偏好设置底部操作为显式右对齐。
 
-## Middle-Edit Status
+## 中键编辑状态
 
-The top bar shows a persistent middle-edit status block near 55% of the panel
-width. It displays:
+顶栏在面板宽度约 55% 处显示一个常驻的中键编辑状态块。它显示：
 
-- The active middle-edit mode.
-- A description of that mode's mouse operation.
-- The current key bindings for the other two middle-edit modes.
+- 当前生效的中键编辑模式。
+- 该模式鼠标操作的说明。
+- 另外两种中键编辑模式的当前按键绑定。
 
-The status uses the user's active bindings and refreshes after preferences are
-applied.
+该状态使用用户当前生效的绑定，并在偏好设置应用后刷新。
 
-## Cover Shortcut
+## 封面快捷入口
 
-The song-info card cover becomes the direct entry point for the current-chart
-preferences page and opens the existing preferences view.
+歌曲信息卡片的封面成为当前谱面偏好设置页的直接入口，并打开现有的偏好设置视图。
 
-## Shortcut Categories
+## 快捷键分类
 
-The shortcuts page is split into four groups:
+快捷键页面分为四组：
 
-- Playback.
-- File and history.
-- Clipboard and selection.
-- Middle-edit modes.
+- 播放。
+- 文件与历史。
+- 剪贴板与选择。
+- 中键编辑模式。
 
-## Validation
+## 验证
 
-- Enabled difficulty ratings must parse as non-negative integers.
-- Existing metadata validation and rollback behavior remains authoritative.
-- Unity compilation, editor self-checks, and targeted interaction checks must
-  pass.
+- 已启用的难度等级必须解析为非负整数。
+- 现有的元数据校验与回滚行为仍是权威。
+- Unity 编译、编辑器自检与针对性交互检查必须通过。

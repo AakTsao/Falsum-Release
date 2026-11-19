@@ -1,58 +1,47 @@
-# Falsum Editor Note Selection Geometry
+# Falsum 编辑器音符选择几何
 
-## Problem
+## 问题
 
-Editor selection does not consistently follow the rendered note body:
+编辑器选择不能稳定跟随渲染出的音符主体：
 
-- A side-lane hold longer than two measures becomes unpickable after its head
-  leaves the view, even while its tail is still visible.
-- Side-lane and wide holds use broad analytic hit areas that can extend well
-  beyond the rendered body.
-- Tap selection outlines use an approximate rectangle that is smaller than the
-  rendered note.
-- Pick padding is measured in canvas-local units, so its effective screen size
-  changes substantially with resolution.
+- 侧 lane 中长度超过两小节的 hold，在其头部离开视野后即无法拾取，即使其尾部
+  仍然可见。
+- 侧 lane 与宽 hold 使用宽泛的解析命中区域，可能远远超出渲染出的主体。
+- 点击音符的选择轮廓使用一个比渲染音符更小的近似矩形。
+- 拾取内边距以画布局部单位度量，因此其有效屏幕尺寸会随分辨率显著变化。
 
-## Design
+## 设计
 
-- Use the rendered mesh points already exposed by `NoteRenderer` as the source
-  of truth for tap, hold, and flick selection outlines and pick polygons.
-- For holds, treat the note as visible when the interval between its head and
-  tail intersects the visible track. Do not require the head itself to remain
-  inside the view.
-- Use the same screen-space polygon for drawing the selection outline and for
-  hit testing.
-- Apply a small resolution-independent pick margin of roughly 4-6 screen pixels
-  around the rendered polygon. Convert that margin to canvas-local units before
-  testing.
-- Keep sky areas on their existing dedicated segmented geometry path.
+- 使用 `NoteRenderer` 已经暴露的渲染网格点，作为 tap、hold 与 flick 选择轮廓
+  及拾取多边形的唯一事实来源。
+- 对 hold，当头部与尾部之间的区间与可见 track 相交时即视为该音符可见。不要求
+  头部本身留在视野内。
+- 绘制选择轮廓与做命中测试使用同一个屏幕空间多边形。
+- 在渲染多边形周围应用一个小的、与分辨率无关的拾取边距，约为 4-6 屏幕像素。
+  在测试前把该边距换算为画布局部单位。
+- skyarea 保持其现有的专用分段几何路径。
 
-## Verification
+## 验证
 
-- Extend editor self-checks with:
-  - a side-lane hold longer than two measures whose head has left the view but
-    whose tail remains visible;
-  - a wide hold with points just outside the rendered body that must not select
-    the note;
-  - a tap whose selection polygon is generated from rendered geometry.
-- Run Unity editor self-checks in batch mode and capture selection screenshots
-  for visual comparison.
+- 用以下用例扩展编辑器自检：
+  - 一个长度超过两小节的侧 lane hold，其头部已离开视野但尾部仍然可见；
+  - 一个宽 hold，其刚落在渲染主体之外的点不得选中该音符；
+  - 一个 tap，其选择多边形由渲染几何生成。
+- 以批处理模式运行 Unity 编辑器自检，并捕获选择截图用于视觉对比。
 
-## Non-Goals
+## 非目标
 
-- Changing note rendering dimensions.
-- Changing selection behavior for sky areas.
-- Reworking unrelated editor controls or drag-selection behavior.
+- 修改音符渲染尺寸。
+- 修改 skyarea 的选择行为。
+- 重做无关的编辑器控件或拖拽选择行为。
 
-## Follow-Up: Occlusion And Pick Filters
+## 后续：遮挡与拾取过滤器
 
-- Treat flick and sky-area notes as an upper pick layer over tap and hold
-  notes. When both layers cover the pointer, the upper layer wins. Depth still
-  chooses between notes in the same layer.
-- Draw a selected note outline only while its visual is active and near the
-  view. Selection state remains intact and the outline returns when the note
-  re-enters the view.
-- Keep sky-area selection visibility behavior unchanged.
-- Expose a `FalsumNotePickMask` bit mask with `GroundNotes` and `SkyNotes`
-  presets. `FalsumChartEditor.SelectionMask` is the single integration point
-  for the reserved "only TAP/HOLD" and "only SKYAREA/FLICK" menu actions.
+- 把 flick 与 skyarea 音符视为位于 tap 与 hold 音符之上的拾取层。当两层都
+  覆盖指针时，上层胜出。同一层内的音符之间仍由深度决定。
+- 仅在音符视觉处于活动且靠近视野时绘制已选音符轮廓。选择状态保持完好，
+  音符重新进入视野时轮廓恢复。
+- skyarea 的选择可见性行为保持不变。
+- 暴露一个 `FalsumNotePickMask` 位掩码，带 `GroundNotes` 与 `SkyNotes` 预设。
+  `FalsumChartEditor.SelectionMask` 是为保留的"仅 TAP/HOLD"与
+  "仅 SKYAREA/FLICK"菜单动作准备的唯一集成点。

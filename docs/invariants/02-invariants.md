@@ -32,11 +32,11 @@ Android 系统选择返回的是文档 URI。不要传给 `File.*`、`Path.GetFu
 → 组号稀疏、不连续。任何「用数组下标当 groupId」的写法都会写出错误的链路。
 `F/Core/FalsumSkyAreaGrouping.cs`（`TimeToleranceMs = 2.0`，`Normalize`）。
 
-�༭�ύ�����֪ͨ��д��ʹ�� `Normalize(..., useOutputOrder: true)`����
-`TimeMs �� Kind �� StartLane �� Id` ����ʱ�б����򣻵��뱣������ `SourceOrder` ���ļ�˳��
-ȱʧ���ظ� `SourceOrder` ʱҲ���밴���˳����ˣ���������׷��˳��
-��һ����������ԭ�����б����д `SourceOrder`���·��������� `Id` �������ύǰȷ����
-����ͬʱ���֧���ڱ༭�뱣��֮�任������2026-11-18��latentduality FBD 67412 ms����
+编辑提交与通知写盘时使用 `Normalize(..., useOutputOrder: true)`，按
+`TimeMs → Kind → StartLane → Id` 排序并重置 `SourceOrder`；读入保存文件时按文件顺序，
+缺失或重复 `SourceOrder` 时也按这个顺序推，不能凭空追加顺序。
+新一轮读入后按原有顺序重写 `SourceOrder`，新放置的音符在 `Id` 落定提交前确保唯一，
+否则同时落盘的分支在编辑与保存之间会互换身份（2026-11-18，latentduality FBD 67412 ms 起）。
 
 ### A-2 `Normalize` 有四个必须调用的时机
 `CommitChange`、`Replace`、`NotifyChanged`、`ChartWriter.CreateCanonicalChart`。

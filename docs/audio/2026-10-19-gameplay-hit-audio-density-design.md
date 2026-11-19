@@ -1,31 +1,26 @@
-# Dense Hit Audio And Master Headroom
+# 密集打击音与总线余量
 
-## Problem
+## 问题
 
-Gameplay tap hits currently create one `PlayOneShot` call per judged note.
-Simultaneous taps therefore duplicate an identical transient, raise the summed
-peak, and consume extra real audio voices. The song and effect assets can also
-reach full scale before they are mixed, so overlapping audio has no guaranteed
-output ceiling.
+玩法中的点击打击目前为每个被判定音符创建一次 `PlayOneShot` 调用。
+同时点击因此会重复叠加同一个瞬态、抬高求和峰值，并多占用真实的音频声部。
+歌曲与音效素材在混音之前也可能达到满刻度，因此重叠的音频没有保证的输出上限。
 
-## Design
+## 设计
 
-- Coalesce tap hit sounds whose chart timestamps are within 1 ms. A chord still
-  shows every judgement and hit effect, but produces one tap transient.
-- Keep the music at 0.72 gain, one-shot effects at 0.42, and hold loops at 0.24.
-  These values create headroom before the final mix.
-- Raise Unity's real voice count from 32 to 64 so dense sky/flick sections do
-  not depend on the previous limit.
-- Use an explicit 48-voice one-shot pool. When every slot is busy, stop and
-  reuse the slot whose scheduled end time is earliest so a new hit is never
-  dropped by Unity's global voice allocator.
-- Add a linked-channel look-ahead limiter to the `AudioListener`. Its final
-  sample ceiling is -1.5 dBFS, with a hard ceiling fallback.
+- 合并谱面时间戳相差在 1 ms 以内的点击打击音。一个和弦仍会显示每个判定与
+  打击特效，但只产生一个点击瞬态。
+- 音乐保持 0.72 增益，一次性特效 0.42，循环保持音 0.24。这些数值在最终混音
+  之前留出余量。
+- 把 Unity 的真实声部数量从 32 提升到 64，使密集的 sky/flick 段落不再依赖
+  原先的上限。
+- 使用一个显式的 48 声部一次性音池。当所有槽位都繁忙时，停止并复用计划结束
+  时间最早的槽位，使新的打击音永不被 Unity 的全局声部分配器丢弃。
+- 为 `AudioListener` 增加一个联动声道的前瞻限制器。其最终采样上限为
+  -1.5 dBFS，并带有硬上限回退。
 
-## Verification
+## 验证
 
-- Extend the gameplay self-check with chord-window and limiter tests. Synthetic
-  input above full scale must leave the limiter no higher than its configured
-  ceiling.
-- Run the Unity gameplay self-check in batch mode.
-
+- 用和弦窗口与限制器测试扩展玩法自检。高于满刻度的合成输入经过限制器后，
+  不得高于其配置的上限。
+- 以批处理模式运行 Unity 玩法自检。

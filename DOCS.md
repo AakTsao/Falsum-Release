@@ -1,6 +1,7 @@
 # 文档索引
 
-本索引由脚本生成，按主题归类。
+本索引按主题归类。外置工具与参考实现包见各目录。
+
 
 ### `docs/architecture/` — 总体架构与项目记忆入口
 
@@ -13,7 +14,7 @@
 
 - [02-invariants](docs/invariants/02-invariants.md)
 
-### `docs/rendering/` — 渲染、轨道、音符、SKYAREA 判定线
+### `docs/rendering/` — 渲染、轨道、音符、TrackEnd、SKYAREA 判定线
 
 - [2026-10-26-falsum-track-end-background-design](docs/rendering/2026-10-26-falsum-track-end-background-design.md)
 - [2026-10-27-falsum-chart-preview-framing-design](docs/rendering/2026-10-27-falsum-chart-preview-framing-design.md)
@@ -33,7 +34,7 @@
 - [detail-rendering](docs/rendering/detail-rendering.md)
 - [天空判定线参数总表](docs/rendering/天空判定线参数总表.md)
 
-### `docs/ui-mobile/` — UI Toolkit 界面与移动端布局
+### `docs/ui-mobile/` — UI Toolkit 界面体系与移动端布局
 
 - [2026-10-19-falsum-ui-toolkit-rewrite-design](docs/ui-mobile/2026-10-19-falsum-ui-toolkit-rewrite-design.md)
 - [2026-10-26-falsum-auto-combo-display-design](docs/ui-mobile/2026-10-26-falsum-auto-combo-display-design.md)
@@ -47,7 +48,7 @@
 - [2026-11-15-falsum-professional-ui-plan](docs/ui-mobile/2026-11-15-falsum-professional-ui-plan.md)
 - [detail-ui](docs/ui-mobile/detail-ui.md)
 
-### `docs/android/` — Android / Falsum PE
+### `docs/android/` — Android / Falsum PE 专项
 
 - [2026-11-06-falsum-android-feasibility-assessment](docs/android/2026-11-06-falsum-android-feasibility-assessment.md)
 - [2026-11-16-falsum-android-file-access-design](docs/android/2026-11-16-falsum-android-file-access-design.md)
@@ -57,7 +58,7 @@
 - [2026-11-18-falsum-android-placement-fonts-keypad-design](docs/android/2026-11-18-falsum-android-placement-fonts-keypad-design.md)
 - [2026-11-18-falsum-loading-and-library-jank-design](docs/android/2026-11-18-falsum-loading-and-library-jank-design.md)
 
-### `docs/editor/` — 编辑器交互：选择、锚点、网格、工具
+### `docs/editor/` — 编辑器交互：选择、锚点、网格标尺、工具链
 
 - [2026-10-19-falsum-editor-note-selection-geometry-design](docs/editor/2026-10-19-falsum-editor-note-selection-geometry-design.md)
 - [2026-10-30-falsum-tool-note-picker-design](docs/editor/2026-10-30-falsum-tool-note-picker-design.md)
@@ -75,12 +76,17 @@
 - [2026-11-03-falsum-preferences-p0-plan](docs/preferences/2026-11-03-falsum-preferences-p0-plan.md)
 - [2026-11-03-falsum-preferences-restructure-design](docs/preferences/2026-11-03-falsum-preferences-restructure-design.md)
 
-### `docs/audio/` — 音频与打击音密度
+### `docs/audio/` — 音频管线与打击音密度
 
 - [2026-10-19-gameplay-hit-audio-density-design](docs/audio/2026-10-19-gameplay-hit-audio-density-design.md)
 - [2026-10-28-falsum-spectrum-placeholder-design](docs/audio/2026-10-28-falsum-spectrum-placeholder-design.md)
 - [2026-11-06-falsum-audio-preprocess-design](docs/audio/2026-11-06-falsum-audio-preprocess-design.md)
 - [2026-11-06-falsum-audio-preprocess-plan](docs/audio/2026-11-06-falsum-audio-preprocess-plan.md)
+
+### `docs/external-tools/` — 外置 JS 工具（设计规则检查、Track 缓动）
+
+- `com.falsum.tools.design-rule-checker/`
+- `com.falsum.tools.track-easing/`
 
 ### `docs/verification/` — 验证流水线与性能优化
 
@@ -89,7 +95,7 @@
 - [2026-11-14-falsum-performance-optimization-plan](docs/verification/2026-11-14-falsum-performance-optimization-plan.md)
 - [detail-pipeline](docs/verification/detail-pipeline.md)
 
-### `docs/history/` — 历史与已知缺口
+### `docs/history/` — 历史决策与已知缺口
 
 - [04-history](docs/history/04-history.md)
 - [05-gaps](docs/history/05-gaps.md)
@@ -102,3 +108,8 @@
 - [2026-11-15-note-render-optimization-results](docs/reviews/2026-11-15-note-render-optimization-results.md)
 - [2026-11-17-android-library-mobile-layout](docs/reviews/2026-11-17-android-library-mobile-layout.md)
 - [2026-11-17-library-cards-and-navigation](docs/reviews/2026-11-17-library-cards-and-navigation.md)
+
+### `docs/packages/` — 上游交付的完整参考实现包
+
+- `flick/` — 749 个文件
+- `trackend/` — 58 个文件

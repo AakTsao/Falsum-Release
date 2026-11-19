@@ -1,0 +1,12 @@
+{
+  "apiVersion": 1,
+  "engine": "javascript",
+  "id": "com.falsum.tools.track-easing",
+  "name": "track-easing",
+  "version": "1.0.1",
+  "author": "FALSUM",
+  "description": "",
+  "entry": "tool.js",
+  "permissions": []
+}
+
