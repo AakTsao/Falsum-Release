@@ -1,0 +1,104 @@
+// ==== TrackEnd 锚点 PLANE_END 场景原始数据（摘自场景 YAML，非完整场景）
+// 源文件: Assets/InFalsus/Gameplay/Recovered/Scenes/GameplayRuntime.unity
+// Scene GUID: 17978ab3e409bac4597af88f78899e52
+//
+// 被绑定的是 v5-3R 支（Transform fileID 4062 / GameObject fileID 782）
+// 未被绑定的是 v5-3  支（Transform fileID 4635 / GameObject fileID 247）
+
+// ---------------------------------------------------------------------------
+// v5-3  支（未被绑定） GameObject 247
+// ---------------------------------------------------------------------------
+--- !u!1 &247
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4635}
+  m_Layer: 7
+  m_Name: PLANE_END
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+
+// ---------------------------------------------------------------------------
+// v5-3  支（未被绑定） Transform 4635
+// ---------------------------------------------------------------------------
+--- !u!4 &4635
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 247}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -2.1175824e-22, z: -0, w: 1}
+  m_LocalPosition: {x: -0.7445592, y: 0.11485599, z: 7.4505804e-11}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2899}
+  m_LocalEulerAnglesHint: {x: 0, y: 2.4265707e-20, z: 0}
+
+// ---------------------------------------------------------------------------
+// v5-3R 支（被绑定）   GameObject 782
+// ---------------------------------------------------------------------------
+--- !u!1 &782
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4062}
+  m_Layer: 7
+  m_Name: PLANE_END
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+
+// ---------------------------------------------------------------------------
+// v5-3R 支（被绑定）   Transform 4062
+// ---------------------------------------------------------------------------
+--- !u!4 &4062
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 782}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -2.1175824e-22, z: -0, w: 1}
+  m_LocalPosition: {x: -0.7445592, y: 0.11485599, z: 7.4505804e-11}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3408}
+  m_LocalEulerAnglesHint: {x: 0, y: 2.4265707e-20, z: 0}
+
+// ---------------------------------------------------------------------------
+// 对照：v5-3R.prefab 中的 PLANE_END（恢复出来的原版预制体，数值与场景一致）
+// 源文件: Assets/InFalsus/Recovered/GameObject/v5-3R.prefab
+// ---------------------------------------------------------------------------
+--- !u!4 &4372920208702427
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1618682377417806}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -2.1175824e-22, z: -0, w: 1}
+  m_LocalPosition: {x: -0.7445592, y: 0.11485599, z: 7.4505804e-11}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4709867586078768}
+  m_LocalEulerAnglesHint: {x: 0, y: 2.4265707e-20, z: 0}
